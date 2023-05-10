@@ -6,6 +6,12 @@ class PhysicGameScene extends Phaser.Scene {
         this.name = name;
     }
 
+    preload(){
+        this.load.path = './assets/';
+        this.load.image("player-stable", 'player-pixel.png');
+        this.load.image("player-sheild", "player-sheild-pixel.png");
+    }
+
     create() {
         this.transitionDuration = 1000;
 
@@ -16,6 +22,8 @@ class PhysicGameScene extends Phaser.Scene {
 
         this.cx = this.cameras.main.centerX;
         this.cy = this.cameras.main.centerY;
+
+        this.physics.world.setBounds(0, 20, this.w, this.h);
 
         this.pointerX = 0;
         this.pointerY = 0;
@@ -63,19 +71,8 @@ class PhysicGameScene extends Phaser.Scene {
             });
 
         this.input.on("pointermove", (pointer) => {
-            //console.log("centerX:" + this.game.config.width / 2);
-            //console.log("centerY:" + this.game.config.height / 2);
-            /* console.log("x:" + pointer.x);
-            console.log("y:" + pointer.y); */
-            //console.log(this.game.globals.TestVar);//调用全局值
             this.pointerX = pointer.x;
             this.pointerY = pointer.y;
-            /* if ((pointer.x <= this.game.config.width / 2 + 50
-                && pointer.x >= this.game.config.width / 2 - 50)
-                && (pointer.y <= this.game.config.height / 2 + 50
-                    && pointer.y >= this.game.config.height / 2 - 50)) {
-                console.log("In the center!");
-            } */
         });
 
         this.onEnter();
