@@ -4,9 +4,9 @@ class GameSceneExmaple extends PhysicGameScene {
     }
 }
 
-class LogoScene extends Phaser.Scene{
+class LogoScene extends Phaser.Scene {
 
-    constructor(){
+    constructor() {
         super("logo");
     }
 
@@ -92,19 +92,120 @@ class Menu extends PhysicGameScene {
     }
 
     onEnter() {
-         text1 = this.add.text(this.w / 2,
+        text1 = this.add.text(this.w / 2,
             this.h / 2,
             "📺 This is the center.")
             .setColor("#fff000")
             .setFontSize(50)
             .setOrigin(0.5)
-            .setPosition(this.cx, this.cy);
+            .setPosition(this.cx, this.cy)
+            .setAlpha(0);
+
+        let StartText = this.add.text(
+            0,
+            0,
+            "Start")
+            .setOrigin(0.5)
+            .setFontSize(50)
+            .setAlpha(0.8)
+            .setPosition(
+                this.cx,
+                this.cy + 200,
+            )
+            .setInteractive()
+            .on("pointerover", () => {
+                StartText.setAlpha(1).setColor('#fff000');
+            })
+            .on("pointerout", () => {
+                StartText.setAlpha(0.8).setColor('#fff');
+            })
+            .on("pointerdown", () => {
+                this.gotoScene("level1");
+            });
+
+            let CreditText = this.add.text(
+                0,
+                0,
+                "Credit")
+                .setOrigin(0.5)
+                .setFontSize(50)
+                .setAlpha(0.8)
+                .setPosition(
+                    this.cx,
+                    this.cy + 300,
+                )
+                .setInteractive()
+                .on("pointerover", () => {
+                    StartText.setAlpha(1).setColor('#fff000');
+                })
+                .on("pointerout", () => {
+                    StartText.setAlpha(0.8).setColor('#fff');
+                })
+                .on("pointerdown", () => {
+                    this.gotoScene("Credit");
+                });
     }
 
     update() {
         text1.setText("X: " + this.pointerX.toFixed(2) + " Y: " + this.pointerY.toFixed(2));
     }
 }
+
+class Level1Scene extends PhysicGameScene {
+
+    constructor() {
+        super("level1", 'level1');
+    }
+
+    onEnter() {
+
+        //create the playerObj
+        this.player = this.physics.add.sprite(this.w * 0.1, this.h / 2, "player-stable").setScale(2);
+
+        //console.log(this.player.y);
+
+        this.
+    }
+
+    update() {
+
+        if (this.gameover) {
+            this.time.delayedCall(1000, () => {
+                //this.gotoScene("summary1");
+            });
+            return;
+        }
+
+        let player = this.player;
+
+        if (player.y != this.pointerY) {
+            if (this.pointerY <= this.h - 50 && this.pointerY >= 100) {
+                player.setY(this.pointerY);
+            }
+        }
+
+        if (this.input.activePointer.isDown) {
+            player.setTexture("player-sheild");
+            player.def = true;
+        }
+        else {
+            player.setTexture("player-stable");
+            player.def = false;
+        }
+    }
+}
+
+class Credit extends PhysicGameScene{
+    constructor(){
+        super('credit','credit');
+    }
+
+    onEnter(){
+        
+    }
+}
+
+
 const game = new Phaser.Game({
     type: Phaser.AUTO,
     scale: {
@@ -113,12 +214,18 @@ const game = new Phaser.Game({
         width: 1920,
         height: 1080
     },
-    scene: [LogoScene,Menu],
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: true
+        }
+    },
+    scene: [LogoScene, Menu, Level1Scene],
     backgroundColor: 0x000000,
     title: "Physic Game",
 });
 
 game.globals = {
-    TestVar: 100,
-
+    TestVar: 100,//console.log(this.game.globals.TestVar);//调用全局值
+    Score:0,
 };
