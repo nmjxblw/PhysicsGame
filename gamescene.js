@@ -1,8 +1,8 @@
-class GameSceneExmaple extends PhysicGameScene {
+/* class GameSceneExmaple extends PhysicGameScene {
     constructor() {
         super("Example1");
     }
-}
+} */
 
 class LogoScene extends Phaser.Scene {
 
@@ -88,10 +88,22 @@ var text1;
 class Menu extends PhysicGameScene {
 
     constructor() {
-        super("Menu", "Menu")
+        super("Menu", "Menu", false, false)
     }
 
     onEnter() {
+
+        let GameTitle = this.add.text(
+                this.w / 2,
+                this.h / 2 - 200,
+                "Doge!",
+                {fontFamily: 'Comic Sans MS',}
+            )
+            .setColor("#2D719B")
+            .setFontSize(100)
+            .setOrigin(0.5)
+            .setShadow(2, 2, '#333333', 2, false, true);
+
         text1 = this.add.text(this.w / 2,
             this.h / 2,
             "📺 This is the center.")
@@ -123,51 +135,46 @@ class Menu extends PhysicGameScene {
                 this.gotoScene("level1");
             });
 
-            let CreditText = this.add.text(
-                0,
-                0,
-                "Credit")
-                .setOrigin(0.5)
-                .setFontSize(50)
-                .setAlpha(0.8)
-                .setPosition(
-                    this.cx,
-                    this.cy + 300,
-                )
-                .setInteractive()
-                .on("pointerover", () => {
-                    StartText.setAlpha(1).setColor('#fff000');
-                })
-                .on("pointerout", () => {
-                    StartText.setAlpha(0.8).setColor('#fff');
-                })
-                .on("pointerdown", () => {
-                    this.gotoScene("Credit");
-                });
+        let CreditText = this.add.text(
+            0,
+            0,
+            "Credit")
+            .setOrigin(0.5)
+            .setFontSize(50)
+            .setAlpha(0.8)
+            .setPosition(
+                this.cx,
+                this.cy + 300,
+            )
+            .setInteractive()
+            .on("pointerover", () => {
+                CreditText.setAlpha(1).setColor('#fff000');
+            })
+            .on("pointerout", () => {
+                CreditText.setAlpha(0.8).setColor('#fff');
+            })
+            .on("pointerdown", () => {
+                this.gotoScene("Credit");
+            });
     }
 
-    update() {
-        text1.setText("X: " + this.pointerX.toFixed(2) + " Y: " + this.pointerY.toFixed(2));
+    OtherSceneUpdate(){
+        //console.log("Now loading SceneUpdate()");
+        text1.setText('X:' + this.pointerX.toFixed(2) + ' Y:' + this.pointerY.toFixed(2));//for debug
     }
 }
 
 class Level1Scene extends PhysicGameScene {
 
     constructor() {
-        super("level1", 'level1');
+        super("level1", 'Level 1', true, false);
     }
 
     onEnter() {
-
-        //create the playerObj
-        this.player = this.physics.add.sprite(this.w * 0.1, this.h / 2, "player-stable").setScale(2);
-
-        //console.log(this.player.y);
-
-        this.
+        this.game.globals.Score = 0;
     }
 
-    update() {
+    BattleSceneUpdate() {
 
         if (this.gameover) {
             this.time.delayedCall(1000, () => {
@@ -175,33 +182,26 @@ class Level1Scene extends PhysicGameScene {
             });
             return;
         }
-
-        let player = this.player;
-
-        if (player.y != this.pointerY) {
-            if (this.pointerY <= this.h - 50 && this.pointerY >= 100) {
-                player.setY(this.pointerY);
-            }
-        }
-
-        if (this.input.activePointer.isDown) {
-            player.setTexture("player-sheild");
-            player.def = true;
-        }
-        else {
-            player.setTexture("player-stable");
-            player.def = false;
-        }
     }
 }
 
-class Credit extends PhysicGameScene{
+class Summary1 extends PhysicGameScene {
     constructor(){
-        super('credit','credit');
+        super("summary1","Summary 1",false,true);
     }
 
     onEnter(){
         
+    }
+}
+
+class Credit extends PhysicGameScene {
+    constructor() {
+        super('credit', 'Credit', false, false);
+    }
+
+    onEnter() {
+
     }
 }
 
@@ -227,5 +227,5 @@ const game = new Phaser.Game({
 
 game.globals = {
     TestVar: 100,//console.log(this.game.globals.TestVar);//调用全局值
-    Score:0,
+    Score: 0,
 };
