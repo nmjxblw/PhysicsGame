@@ -7,7 +7,7 @@ class PhysicGameScene extends Phaser.Scene {
         this.name = name;
         this.isBattleScene = isBattleScene;
         this.isSummaryScene = isSummaryScene;
-        this.level = this.name.replace(/[^0-9]/ig, "");//提取name中的level
+        this.level = parseInt(this.name.replace(/[^0-9]/ig, ""));//提取name中的level
     }
 
     preload() {
@@ -19,6 +19,7 @@ class PhysicGameScene extends Phaser.Scene {
         this.load.image("red-bullet", "red-bullet.png");
         this.load.image("blue-bullet", "blue-bullet.png");
         this.load.image("green-bullet", "green-bullet.png");
+        this.load.image("heart", "heart-pixel.png");
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
 
@@ -161,6 +162,44 @@ class PhysicGameScene extends Phaser.Scene {
             }
         });
 
+        this.enemyBullets.children.iterate(function (enemyBullet) {
+            enemyBullet.setCircle(30);
+        });
+
+        this.trickBullets = this.add.existing(
+            new Bullets(this.physics.world, this, { name: 'blue-bullets' })
+        );
+
+        this.trickBullets.createMultiple({
+            key: 'blue-bullet',
+            quantity: 5,
+            setScale: {
+                x: 0.5,
+                y: 0.5
+            }
+        });
+
+        this.trickBullets.children.iterate(function (trickBullet) {
+            trickBullet.setCircle(30);
+        });
+
+        this.playerBullets = this.add.existing(
+            new Bullets(this.physics.world, this, { name: 'green-bullets' })
+        );
+
+        this.playerBullets.createMultiple({
+            key: 'green-bullet',
+            quantity: 5,
+            setScale: {
+                x: 0.5,
+                y: 0.5
+            }
+        });
+
+        this.playerBullets.children.iterate(function (playerBullet) {
+            playerBullet.setCircle(30);
+        });
+
         this.platform = this.physics.add.group({
             defaultKey: 'bar'
         });
@@ -172,14 +211,60 @@ class PhysicGameScene extends Phaser.Scene {
             body.gameObject.onWorldBounds();
         });
 
+        this.player.hp = this.getPlayerHp(this.level);
+        this.enemy.hp = this.getEnemyHp(this.level);
+
+        //加载计时器
         this.loadTimer();
+
+        //加载障碍物
         this.loadBarrier(this.level);
 
         //加载敌人开火逻辑
         this.loadEnemyFiring(this.level);
 
+        //加载红心
+        this.displayHeart();
+        this.displayEnemyHeart();
+
         this.physics.add.overlap(this.player, this.enemyBullets, this.playerHit, null, this);
+        this.physics.add.overlap(this.player, this.trickBullets, this.playerHit, null, this);
         this.physics.add.overlap(this.platform, this.enemyBullets, this.platformHit, null, this);
+        this.physics.add.overlap(this.platform, this.trickBullets, this.platformHit, null, this);
+        this.physics.add.overlap(this.enemy, this.playerBullets, this.enemyHit, null, this);
+    }
+
+    //显示红心
+    getPlayerHp(level) {
+        if (level == 1) { return 5; }
+        else if (level == 2) { return 4; }
+        else { return 3; }
+    }
+
+    getEnemyHp(level) {
+        if (level == 1) { return 4; }
+        else if (level == 2) { return 5; }
+        else { return 6; }
+    }
+
+    displayHeart() {
+        //console.log("heart display");
+        this.hearts = [];
+        for (let i = 0; i < this.player.hp; i++) {
+            const heart = this.add.image(80 * i + 100, 50, 'heart');
+            //console.log("Heart " + i + " display.");
+            this.hearts.push(heart);
+        }
+    }
+
+    displayEnemyHeart() {
+        //console.log("heart display");
+        this.EnemyHearts = [];
+        for (let i = 0; i < this.enemy.hp; i++) {
+            const enemyHeart = this.add.image(-80 * i + this.w - 100, 50, 'enemy');
+            //console.log("Heart " + i + " display.");
+            this.EnemyHearts.push(enemyHeart);
+        }
     }
 
     //加载计时器,当进入这个场景时开始计时，离开后停止计时。
@@ -188,35 +273,20 @@ class PhysicGameScene extends Phaser.Scene {
             delay: 1000,
             callback: () => {
                 if (this.scene.isActive()) {
-                    this.scene.timeCount++;
+                    this.game.globals.Timer++;
+                    console.log(this.game.globals.Timer);
                 }
             },
             callbackScope: this,
             loop: true,
         });
 
-        this.timeCount = 0;
+        this.game.globals.Timer = 0;
     }
 
     //加载敌人的开火逻辑，
     //根据不同等级改变发射逻辑
     loadEnemyFiring(level) {
-        this.enemyBullets = this.add.existing(
-            new Bullets(this.physics.world, this, { name: 'red-bullets' })
-        );
-
-        this.enemyBullets.createMultiple({
-            key: 'red-bullet',
-            quantity: 5,
-            setScale: {
-                x: 0.5,
-                y: 0.5
-            }
-        });
-
-        this.enemyBullets.children.iterate(function (enemyBullet) {
-            enemyBullet.setCircle(30);
-        });
 
         if (level == 1) {
             this.fireCount = 0;
@@ -240,8 +310,14 @@ class PhysicGameScene extends Phaser.Scene {
                             callbackScope: this
                         });
                     }
-
-                    this.enemyBullets.fire(this.enemy.x - 50, this.enemy.y, -500, 0)
+                    const rand = Phaser.Math.Between(1, 100);
+                    //console.log(rand);
+                    if (rand > 20) {
+                        this.enemyBullets.fire(this.enemy.x - 50, this.enemy.y, -500, 0);
+                    }
+                    else {
+                        this.trickBullets.fire(this.enemy.x - 50, this.enemy.y, -500, 0);
+                    }
                 }
             });
         }
@@ -254,15 +330,34 @@ class PhysicGameScene extends Phaser.Scene {
     }
 
     //当玩家被子弹击中时的逻辑
-    playerHit(plyaer, enemyBullte) {
+    playerHit(player, enemyBullte) {
+        //debugger;
+        //console.log(typeof enemyBullte);
+        //console.log(enemyBullte.texture.key);
+        enemyBullte.disableBody(true, true);
+        if (this.player.def && enemyBullte.texture.key == "blue-bullet") {
+            const angle = Phaser.Math.Angle.Between(this.player.x + 50, this.player.y, this.enemy.x, this.enemy.y);
+            //console.log(angle);
+            const velocityX = 500 * Math.cos(angle);
+            const velocityY = 500 * Math.sin(angle);
+            this.playerBullets.fire(this.player.x + 50, this.player.y, velocityX, velocityY)
+        }
+        else {
+            player.hp -= 1;
+            if (this.game.globals.Score > 0) { this.game.globals.Score--; }
+        }
+    }
+
+    //当子弹击中障碍物的逻辑
+    platformHit(platform, enemyBullte) {
         //debugger;
         enemyBullte.disableBody(true, true);
     }
 
-    //当子弹击中障碍物的逻辑
-    playerHit(platform, enemyBullte) {
-        //debugger;
-        enemyBullte.disableBody(true, true);
+    enemyHit(enemy, playerBullet) {
+        playerBullet.disableBody(true, true);
+        enemy.hp -= 1;
+        this.game.globals.Score++;
     }
 
     //加载update()中玩家操作逻辑
@@ -286,29 +381,34 @@ class PhysicGameScene extends Phaser.Scene {
         }
     }
 
+    UpdateCheckWin() {
+        if (this.player.hp <= 0) {
+            this.game.globals.GameOver = true;
+            this.gotoScene(`summary${this.level}`);
+            return;
+        }
+        else if (this.enemy.hp <= 0) {
+            this.game.globals.GameOver = false;
+            this.gotoScene(`summary${this.level}`);
+            return;
+        }
+        else {
+            this.game.globals.GameOver = false;
+        }
+    }
+
     //障碍物设置函数
     loadBarrier(level) {
 
         if (level == 1) {
 
-            this.platform.create(this.w / 2 + 200, this.h / 6 + 10);
+            this.platform.create(this.w / 2 + 200, this.h / 6 + 20).setVelocityY(500).setBounce(1);
 
             for (const platformbar of this.platform.getChildren()) {
                 platformbar.immovable = true;
-                platformbar.setVelocityY = 200;
+                platformbar.setCollideWorldBounds(true);
             }
 
-            /* this.time.addEvent({
-                delay: 1500,
-                loop: true,
-                callback: function () {
-                    for (this.platformbar of platform.getChildren()) {
-                        this.platformbar.body.velocity.y *= -1;
-                    }
-                }
-            }); */
-
-            //this.physics.add.overlap(platform, this.enemyBullets, this.platformHit, null, this);
         }
         else if (level == 2) {
 
@@ -352,6 +452,85 @@ class PhysicGameScene extends Phaser.Scene {
         enemy.y += BossMoveSpeed;
     }
 
+    UpdateHeart() {
+        for (let i = 0; i < this.hearts.length; i++) {
+            if (i < this.player.hp) {
+                this.hearts[i].setVisible(true);
+            } else {
+                this.hearts[i].setVisible(false);
+            }
+        }
+        for (let i = 0; i < this.EnemyHearts.length; i++) {
+            if (i < this.enemy.hp) {
+                this.EnemyHearts[i].setVisible(true);
+            } else {
+                this.EnemyHearts[i].setVisible(false);
+            }
+        }
+    }
+
+    loadSummaryScene() {
+        //显示时间
+        if (this.game.globals.Score > Math.floor(this.game.globals.Timer / 10)) {
+            this.game.globals.Score -= Math.floor(this.game.globals.Timer / 10);
+        }
+        this.add.text(this.cx, this.cy - 200, `Time Taken:${this.game.globals.Timer}s`)
+            .setFontSize(80)
+            .setOrigin(0.5);
+
+        this.add.text(this.cx, this.cy - 300, `Your Score:${this.game.globals.Score}`)
+            .setFontSize(80)
+            .setOrigin(0.5);
+
+        if (this.game.globals.GameOver) {
+            this.add.text(this.cx, this.cy + 100, `You Failed!`)
+            .setFontSize(80)
+            .setOrigin(0.5);
+
+            const AgainText = this.add.text(this.cx, this.cy + 200, `Again!`, { fontFamily: 'Comic Sans MS', })
+            .setFontSize(50)
+            .setOrigin(0.5)
+            .setInteractive()
+            .setAlpha(0.8)
+            .on("pointerover",()=>{
+                AgainText.setAlpha(1).setColor("#fff000");
+            })
+            .on("pointerout",()=>{
+                AgainText.setAlpha(0.8).setColor("#fff");
+            })
+            .on("pointerdown",()=>{
+                this.gotoScene('level1');
+            });
+        }
+        else{
+            this.add.text(this.cx, this.cy + 100, `Congratulations!`)
+            .setFontSize(80)
+            .setOrigin(0.5);
+
+            const NextLevelText = this.add.text(this.cx, this.cy + 200, `Next level!`, { fontFamily: 'Comic Sans MS', })
+            .setFontSize(50)
+            .setOrigin(0.5)
+            .setInteractive()
+            .setAlpha(0.8)
+            .on("pointerover",()=>{
+                NextLevelText.setAlpha(1).setColor("#fff000");
+            })
+            .on("pointerout",()=>{
+                NextLevelText.setAlpha(0.8).setColor("#fff");
+            })
+            .on("pointerdown",()=>{
+                let nextlevel = this.level + 1;
+                console.log(nextlevel);
+                if(nextlevel <= 3){
+                    this.gotoScene(`level${nextlevel}`);
+                }
+                else{
+                    this.gotoScene(`credit`);
+                }
+            });
+        }
+    }
+
 
     //重载函数，当子类没有onEnter()函数时报错
     onEnter() {
@@ -363,6 +542,8 @@ class PhysicGameScene extends Phaser.Scene {
         if (this.isBattleScene) {
             this.UpdatePlayer();//加载玩家操作逻辑
             this.UpdateBoss(this.level);//加载boss的AI
+            this.UpdateHeart();//加载红心
+            this.UpdateCheckWin();
             this.BattleSceneUpdate();//加载战斗场景额外update()
         }
         else if (this.isSummaryScene) {

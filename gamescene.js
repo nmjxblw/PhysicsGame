@@ -18,6 +18,8 @@ class LogoScene extends Phaser.Scene {
 
     create() {
 
+        this.input.on
+
         const centerX = this.game.config.width / 2;
         const centerY = this.game.config.height / 2;
         var rotateAngle = 0;
@@ -71,6 +73,8 @@ class LogoScene extends Phaser.Scene {
 
         logoBgm.play();
 
+        this.jumpFunction();
+
         this.input.on('pointerdown', () => {
             this.time.delayedCall(1000, () => {
                 this.cameras.main.fadeOut(1000, 255, 255, 255);
@@ -78,6 +82,17 @@ class LogoScene extends Phaser.Scene {
                     this.scene.start('Menu');
                 });
             });
+        });
+
+
+    }
+
+    jumpFunction() {
+        this.input.keyboard.on('keydown', (event) => {
+            console.log('keydown event', event);
+            if (event.key == '1') {
+                this.scene.start('level1');
+            }
         });
     }
 }
@@ -94,11 +109,11 @@ class Menu extends PhysicGameScene {
     onEnter() {
 
         let GameTitle = this.add.text(
-                this.w / 2,
-                this.h / 2 - 200,
-                "Doge!",
-                {fontFamily: 'Comic Sans MS',}
-            )
+            this.w / 2,
+            this.h / 2 - 200,
+            "Doge!",
+            { fontFamily: 'Comic Sans MS', }
+        )
             .setColor("#2D719B")
             .setFontSize(100)
             .setOrigin(0.5)
@@ -158,7 +173,7 @@ class Menu extends PhysicGameScene {
             });
     }
 
-    OtherSceneUpdate(){
+    OtherSceneUpdate() {
         //console.log("Now loading SceneUpdate()");
         text1.setText('X:' + this.pointerX.toFixed(2) + ' Y:' + this.pointerY.toFixed(2));//for debug
     }
@@ -171,27 +186,74 @@ class Level1Scene extends PhysicGameScene {
     }
 
     onEnter() {
-        this.game.globals.Score = 0;
     }
 
     BattleSceneUpdate() {
+    }
+}
 
-        if (this.gameover) {
-            this.time.delayedCall(1000, () => {
-                //this.gotoScene("summary1");
-            });
-            return;
-        }
+class Level2Scene extends PhysicGameScene {
+
+    constructor() {
+        super("level2", 'Level 2', true, false);
+    }
+
+    onEnter() {
+    }
+
+    BattleSceneUpdate() {
+    }
+}
+
+class Level3Scene extends PhysicGameScene {
+
+    constructor() {
+        super("level3", 'Level 3', true, false);
+    }
+
+    onEnter() {
+    }
+
+    BattleSceneUpdate() {
     }
 }
 
 class Summary1 extends PhysicGameScene {
-    constructor(){
-        super("summary1","Summary 1",false,true);
+    constructor() {
+        super("summary1", "Summary 1", false, true);
     }
 
-    onEnter(){
-        
+    onEnter() {
+    }
+
+    SummarySceneUpdate() {
+
+    }
+}
+
+class Summary2 extends PhysicGameScene {
+    constructor() {
+        super("summary2", "Summary 2", false, true);
+    }
+
+    onEnter() {
+    }
+
+    SummarySceneUpdate() {
+
+    }
+}
+
+class Summary3 extends PhysicGameScene {
+    constructor() {
+        super("summary3", "Summary 3", false, true);
+    }
+
+    onEnter() {
+    }
+
+    SummarySceneUpdate() {
+
     }
 }
 
@@ -202,6 +264,10 @@ class Credit extends PhysicGameScene {
 
     onEnter() {
 
+    }
+
+    OtherSceneUpdate() {
+    
     }
 }
 
@@ -217,10 +283,10 @@ const game = new Phaser.Game({
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true
+            debug: false,
         }
     },
-    scene: [LogoScene, Menu, Level1Scene],
+    scene: [LogoScene, Menu, Level1Scene, Summary1, Level2Scene, Summary2, Level3Scene, Summary3, Credit],
     backgroundColor: 0x000000,
     title: "Physic Game",
 });
@@ -228,4 +294,7 @@ const game = new Phaser.Game({
 game.globals = {
     TestVar: 100,//console.log(this.game.globals.TestVar);//调用全局值
     Score: 0,
+    Timer: 0,
+
+    GameOver: false,
 };
