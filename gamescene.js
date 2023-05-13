@@ -90,9 +90,7 @@ class LogoScene extends Phaser.Scene {
     jumpFunction() {
         this.input.keyboard.on('keydown', (event) => {
             console.log('keydown event', event);
-            if (event.key == '1') {
-                this.scene.start('level1');
-            }
+            this.scene.start(`level${event.key}`);
         });
     }
 }
@@ -141,10 +139,10 @@ class Menu extends PhysicGameScene {
             )
             .setInteractive()
             .on("pointerover", () => {
-                StartText.setAlpha(1).setColor('#fff000');
+                StartText.setAlpha(1).setColor('#fff000').setScale(1.1);
             })
             .on("pointerout", () => {
-                StartText.setAlpha(0.8).setColor('#fff');
+                StartText.setAlpha(0.8).setColor('#fff').setScale(1);
             })
             .on("pointerdown", () => {
                 this.gotoScene("level1");
@@ -163,13 +161,13 @@ class Menu extends PhysicGameScene {
             )
             .setInteractive()
             .on("pointerover", () => {
-                CreditText.setAlpha(1).setColor('#fff000');
+                CreditText.setAlpha(1).setColor('#fff000').setScale(1.1);
             })
             .on("pointerout", () => {
-                CreditText.setAlpha(0.8).setColor('#fff');
+                CreditText.setAlpha(0.8).setColor('#fff').setScale(1);
             })
             .on("pointerdown", () => {
-                this.gotoScene("Credit");
+                this.gotoScene("credit");
             });
     }
 
@@ -186,6 +184,26 @@ class Level1Scene extends PhysicGameScene {
     }
 
     onEnter() {
+        let tips = this.add.text(
+            this.cx,
+            this.cy - 400,
+            "Defense blue balls to do damage to enemy.",
+            { fontFamily: 'Century Gothic', }
+        )
+            .setOrigin(0.5)
+            .setAlpha(0.5)
+            .setFontSize(50)
+            .setColor('#2D719B');
+
+        this.time.delayedCall(10000, () => {
+            console.log("call");
+            this.tweens.add({
+                targets: tips,
+                delay: 2000,
+                alpha: 0,
+                ease: "linear",
+            });
+        });
     }
 
     BattleSceneUpdate() {
@@ -263,11 +281,98 @@ class Credit extends PhysicGameScene {
     }
 
     onEnter() {
+        this.loadTitle();
+
+        let backText = this.add.text(
+            200,
+            50,
+            "Back to Menu",
+            { fontFamily: 'Century Gothic', }
+        )
+            .setOrigin(0.5)
+            .setAlpha(0.8)
+            .setFontSize(50)
+            .setColor('#fff')
+            .setInteractive()
+            .on("pointerover", () => {
+                backText.setScale(1.1).setAlpha(1);
+            })
+            .on('pointerout', () => {
+                backText.setScale(1).setAlpha(0.8);
+            })
+            .on('pointerdown', () => {
+                this.gotoScene('Menu');
+            })
+            ;
+
+        let ArtCredit = this.add.text(
+            this.cx,
+            this.cy - 400,
+            'Art',
+            {
+                fontFamily: 'Comic Sans MS',
+            })
+            .setOrigin(0.5)
+            .setFontSize(80)
+            .setColor('#fff')
+            .setInteractive()
+            .on("pointerover", () => {
+                ArtCredit.setScale(1.1);
+            })
+            .on('pointerout', () => {
+                ArtCredit.setScale(1);
+            })
+            ;
+
+        let ArtCreditText = this.add.text(
+            this.cx,
+            this.cy - 300,
+            'All arts are made by myself via Aseprite.',
+            {
+                fontFamily: 'Comic Sans MS',
+            })
+            .setOrigin(0.5)
+            .setFontSize(50)
+            .setColor('#fff')
+            .setInteractive()
+            ;
+
+        let SoundCredit = this.add.text(
+            this.cx,
+            this.cy - 100,
+            'Sound',
+            {
+                fontFamily: 'Comic Sans MS',
+            })
+            .setOrigin(0.5)
+            .setFontSize(80)
+            .setColor('#fff')
+            .setInteractive()
+            .on("pointerover", () => {
+                SoundCredit.setScale(1.1);
+            })
+            .on('pointerout', () => {
+                SoundCredit.setScale(1);
+            })
+            ;
+
+        let SoundCreditText = this.add.text(
+            this.cx,
+            this.cy + 100,
+            'funny-meow-110120.mp3\n-upload by u 8zlmcos31y\n-from:https://pixabay.com/zh/sound-effects/funny-meow-110120/',
+            {
+                fontFamily: 'Comic Sans MS',
+            })
+            .setOrigin(0.5, 0.5)
+            .setFontSize(50)
+            .setColor('#fff')
+            .setInteractive()
+            ;
 
     }
 
     OtherSceneUpdate() {
-    
+
     }
 }
 

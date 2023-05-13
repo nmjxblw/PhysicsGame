@@ -155,7 +155,7 @@ class PhysicGameScene extends Phaser.Scene {
 
         this.enemyBullets.createMultiple({
             key: 'red-bullet',
-            quantity: 5,
+            quantity: 999,
             setScale: {
                 x: 0.5,
                 y: 0.5
@@ -211,6 +211,7 @@ class PhysicGameScene extends Phaser.Scene {
             body.gameObject.onWorldBounds();
         });
 
+        //加载玩家和敌人生命值
         this.player.hp = this.getPlayerHp(this.level);
         this.enemy.hp = this.getEnemyHp(this.level);
 
@@ -241,12 +242,14 @@ class PhysicGameScene extends Phaser.Scene {
         else { return 3; }
     }
 
+    //设置敌人血量
     getEnemyHp(level) {
         if (level == 1) { return 4; }
         else if (level == 2) { return 5; }
         else { return 6; }
     }
 
+    //显示玩家生命值
     displayHeart() {
         //console.log("heart display");
         this.hearts = [];
@@ -257,6 +260,7 @@ class PhysicGameScene extends Phaser.Scene {
         }
     }
 
+    //显示敌人生命值
     displayEnemyHeart() {
         //console.log("heart display");
         this.EnemyHearts = [];
@@ -274,7 +278,7 @@ class PhysicGameScene extends Phaser.Scene {
             callback: () => {
                 if (this.scene.isActive()) {
                     this.game.globals.Timer++;
-                    console.log(this.game.globals.Timer);
+                    //console.log(this.game.globals.Timer);
                 }
             },
             callbackScope: this,
@@ -287,9 +291,10 @@ class PhysicGameScene extends Phaser.Scene {
     //加载敌人的开火逻辑，
     //根据不同等级改变发射逻辑
     loadEnemyFiring(level) {
-
+        this.fireCount = 0;
+        //等级1：每0.75秒发射一枚子弹
+        //20%的概率生成可以反弹的子弹
         if (level == 1) {
-            this.fireCount = 0;
             this.enemyFiring = this.time.addEvent({
                 delay: 750,
                 loop: true,
@@ -297,7 +302,7 @@ class PhysicGameScene extends Phaser.Scene {
 
                     this.fireCount++;
 
-                    // 每执行5次后暂停3秒，并重置计数器
+                    // 每执行3次后暂停3秒，并重置计数器
                     if (this.fireCount % 3 === 0) {
                         //console.log("paused");
                         this.enemyFiring.paused = true;
@@ -322,10 +327,60 @@ class PhysicGameScene extends Phaser.Scene {
             });
         }
         else if (level == 2) {
+            this.enemyFiring = this.time.addEvent({
+                delay: 750,
+                loop: true,
+                callback: () => {
 
+                    this.fireCount++;
+
+                    // 每执行4次后暂停3.5秒，并重置计数器
+                    if (this.fireCount % 4 === 0) {
+                        this.enemyFiring.paused = true;
+                        this.time.addEvent({
+                            delay: 3500,
+                            callback: function () {
+                                for (var i = 0; i < 3; i++) {
+                                    console.log("trickfire");
+                                    const rx = Phaser.Math.Between(this.cx, this.enemy.x - 100);
+                                    const ry = this.enemy.y + 50 * i - 150;
+                                    this.trickBullets.fireTarget(rx, ry, 500, this.player);
+                                }
+                                this.enemyFiring.paused = false;
+                                this.fireCount = 0;
+                            },
+                            callbackScope: this,
+                            onComplete: () => {
+                            },
+                            onCompleteScope: this,
+                        });
+                    }
+                    this.enemyBullets.fire(this.enemy.x - 50, this.enemy.y, -500, 0);
+                    this.enemyBullets.fire(this.enemy.x - 50, this.enemy.y + 50, -500, 0);
+                    this.enemyBullets.fire(this.enemy.x - 50, this.enemy.y - 50, -500, 0);
+                }
+            });
         }
         else {
-
+            this.enemyFiring = this.time.addEvent({
+                delay: 750,
+                loop: true,
+                callback: () => {
+                    this.fireCount++;
+                    const rand = Phaser.Math.Between(1, 100);
+                    const rx = Phaser.Math.Between(this.cx, this.enemy.x - 100);
+                    const ry = this.enemy.y + 50 * i - 150;
+                    console.log(rand);
+                    if (rand > 20) {
+                        for (var i = 0; i < 5; i++) {
+                            this.enemyBullets.fireTargetA(rx, this.enemy.y - 150 + 60 * i, 500, this.player, 100);
+                        }
+                    }
+                    else {
+                        this.trickBullets.fireTarget(this.enemy.x - 50, this.enemy.y, 500, this.player);
+                    }
+                }
+            });
         }
     }
 
@@ -411,9 +466,43 @@ class PhysicGameScene extends Phaser.Scene {
 
         }
         else if (level == 2) {
+            this.platform1 = this.platform.create(
+                Phaser.Math.RND.integerInRange(this.w / 2 + 200, this.w / 2 + 300),
+                Phaser.Math.RND.integerInRange(this.h / 6 + 20, this.h * 5 / 6 - 20),
+            )
+                .setOrigin(0.5)
+                .setVelocityY(Phaser.Math.RND.integerInRange(300, 450))
+                .setBounce(1);
+            //.setAngularVelocity(30);
 
+            this.platform2 = this.platform.create(
+                Phaser.Math.RND.integerInRange(this.w / 2 - 300, this.w / 2 - 200),
+                Phaser.Math.RND.integerInRange(this.h / 6 + 20, this.h * 5 / 6 - 20)
+            )
+                .setOrigin(0.5)
+                .setVelocityY(Phaser.Math.RND.integerInRange(400, 600))
+                .setBounce(1);
+            //.setAngularVelocity(Phaser.Math.RND.integerInRange(30, 60));
+
+            for (const platformbar of this.platform.getChildren()) {
+                platformbar.immovable = true;
+                platformbar.setCollideWorldBounds(true);
+            }
         }
         else {
+            this.platform1 = this.platform.create(
+                Phaser.Math.RND.integerInRange(this.w / 2 + 200, this.w / 2 + 300),
+                Phaser.Math.RND.integerInRange(this.h / 6 + 20, this.h * 5 / 6 - 20),
+            )
+                .setOrigin(0.5)
+                .setVelocityY(Phaser.Math.RND.integerInRange(100, 200))
+                .setScale(0.5)
+                .setBounce(1);
+
+            for (const platformbar of this.platform.getChildren()) {
+                platformbar.immovable = true;
+                platformbar.setCollideWorldBounds(true);
+            }
 
         }
     }
@@ -484,50 +573,65 @@ class PhysicGameScene extends Phaser.Scene {
 
         if (this.game.globals.GameOver) {
             this.add.text(this.cx, this.cy + 100, `You Failed!`)
-            .setFontSize(80)
-            .setOrigin(0.5);
+                .setFontSize(80)
+                .setOrigin(0.5);
 
             const AgainText = this.add.text(this.cx, this.cy + 200, `Again!`, { fontFamily: 'Comic Sans MS', })
-            .setFontSize(50)
-            .setOrigin(0.5)
-            .setInteractive()
-            .setAlpha(0.8)
-            .on("pointerover",()=>{
-                AgainText.setAlpha(1).setColor("#fff000");
-            })
-            .on("pointerout",()=>{
-                AgainText.setAlpha(0.8).setColor("#fff");
-            })
-            .on("pointerdown",()=>{
-                this.gotoScene('level1');
-            });
+                .setFontSize(50)
+                .setOrigin(0.5)
+                .setInteractive()
+                .setAlpha(0.8)
+                .on("pointerover", () => {
+                    AgainText.setAlpha(1).setColor("#fff000").setScale(1.1);
+                })
+                .on("pointerout", () => {
+                    AgainText.setAlpha(0.8).setColor("#fff").setScale(1);
+                })
+                .on("pointerdown", () => {
+                    this.gotoScene('level1');
+                });
+
+            const BackMenuText = this.add.text(this.cx, this.cy + 300, `Back to Menu`, { fontFamily: 'Comic Sans MS', })
+                .setFontSize(50)
+                .setOrigin(0.5)
+                .setInteractive()
+                .setAlpha(0.8)
+                .on("pointerover", () => {
+                    BackMenuText.setAlpha(1).setColor("#fff000").setScale(1.1);
+                })
+                .on("pointerout", () => {
+                    BackMenuText.setAlpha(0.8).setColor("#fff").setScale(1);
+                })
+                .on("pointerdown", () => {
+                    this.gotoScene('Menu');
+                });
         }
-        else{
+        else {
             this.add.text(this.cx, this.cy + 100, `Congratulations!`)
-            .setFontSize(80)
-            .setOrigin(0.5);
+                .setFontSize(80)
+                .setOrigin(0.5);
 
             const NextLevelText = this.add.text(this.cx, this.cy + 200, `Next level!`, { fontFamily: 'Comic Sans MS', })
-            .setFontSize(50)
-            .setOrigin(0.5)
-            .setInteractive()
-            .setAlpha(0.8)
-            .on("pointerover",()=>{
-                NextLevelText.setAlpha(1).setColor("#fff000");
-            })
-            .on("pointerout",()=>{
-                NextLevelText.setAlpha(0.8).setColor("#fff");
-            })
-            .on("pointerdown",()=>{
-                let nextlevel = this.level + 1;
-                console.log(nextlevel);
-                if(nextlevel <= 3){
-                    this.gotoScene(`level${nextlevel}`);
-                }
-                else{
-                    this.gotoScene(`credit`);
-                }
-            });
+                .setFontSize(50)
+                .setOrigin(0.5)
+                .setInteractive()
+                .setAlpha(0.8)
+                .on("pointerover", () => {
+                    NextLevelText.setAlpha(1).setColor("#fff000");
+                })
+                .on("pointerout", () => {
+                    NextLevelText.setAlpha(0.8).setColor("#fff");
+                })
+                .on("pointerdown", () => {
+                    let nextlevel = this.level + 1;
+                    console.log(nextlevel);
+                    if (nextlevel <= 3) {
+                        this.gotoScene(`level${nextlevel}`);
+                    }
+                    else {
+                        this.gotoScene(`credit`);
+                    }
+                });
         }
     }
 
@@ -586,6 +690,28 @@ class Bullet extends Phaser.Physics.Arcade.Sprite {
         this.setVelocity(vx, vy);
     }
 
+    fire(x, y, vx, vy, ax, ay) {
+        this.enableBody(true, x, y, true, true);
+        this.setVelocity(vx, vy);
+        this.setAcceleration(ax, ay);
+    }
+
+    fireTarget(x, y, v, obj) {
+        this.enableBody(true, x, y, true, true);
+        const angle = Math.atan2(obj.y - y, obj.x - x);
+        const vx = v * Math.cos(angle);
+        const vy = v * Math.sin(angle);
+        this.setVelocity(vx, vy);
+    }
+
+    fireTargetA(x, y, v, obj, a) {
+        this.fireTarget(x, y, v, obj);
+        const angle = Math.atan2(obj.y - y, obj.x - x);
+        const ax = v * Math.cos(angle);
+        const ay = v * Math.sin(angle);
+        this.setAcceleration(ax, ay);
+    }
+
     onCreate() {
         this.disableBody(true, true);
         /* 在Phaser中，this.disableBody()是用于禁用游戏对象的物理引擎支持的方法。该方法有两个可选参数，分别为：
@@ -616,6 +742,22 @@ class Bullets extends Phaser.Physics.Arcade.Group {
 
         if (bullet) {
             bullet.fire(x, y, vx, vy);
+        }
+    }
+
+    fireTarget(x, y, v, obj) {
+        const bullet = this.getFirstDead(false);
+
+        if (bullet) {
+            bullet.fireTarget(x, y, v, obj);
+        }
+    }
+
+    fireTargetA(x, y, v, obj, a) {
+        const bullet = this.getFirstDead(false);
+
+        if (bullet) {
+            bullet.fireTargetA(x, y, v, obj, a);
         }
     }
 
