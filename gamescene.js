@@ -1,9 +1,3 @@
-/* class GameSceneExmaple extends PhysicGameScene {
-    constructor() {
-        super("Example1");
-    }
-} */
-
 class LogoScene extends Phaser.Scene {
 
     constructor() {
