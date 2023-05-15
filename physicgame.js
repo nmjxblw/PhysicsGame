@@ -370,10 +370,10 @@ class PhysicGameScene extends Phaser.Scene {
                     const rand = Phaser.Math.Between(1, 100);
                     const rx = Phaser.Math.Between(this.cx, this.enemy.x - 100);
                     const ry = this.enemy.y + 50 * i - 150;
-                    console.log(rand);
+                    //console.log(rand);
                     if (rand > 20) {
                         for (var i = 0; i < 5; i++) {
-                            this.enemyBullets.fireTargetA(rx, this.enemy.y - 150 + 60 * i, 500, this.player, 100);
+                            this.enemyBullets.fireTargetA(rx, this.enemy.y - 150 + 60 * i, 500, this.player, 500);
                         }
                     }
                     else {
@@ -707,8 +707,8 @@ class Bullet extends Phaser.Physics.Arcade.Sprite {
     fireTargetA(x, y, v, obj, a) {
         this.fireTarget(x, y, v, obj);
         const angle = Math.atan2(obj.y - y, obj.x - x);
-        const ax = v * Math.cos(angle);
-        const ay = v * Math.sin(angle);
+        const ax = a * Math.cos(angle);
+        const ay = a * Math.sin(angle);
         this.setAcceleration(ax, ay);
     }
 
